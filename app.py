@@ -290,28 +290,34 @@ def get_api_key():
 
 # ─── Gemini API Functions ───
 def call_gemini(prompt, use_search=False, api_key=""):
-    """Call Gemini API with optional Google Search grounding."""
+    """Call Gemini API via REST — no SDK dependency issues."""
+    import requests
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+    }
+    
+    if use_search:
+        payload["tools"] = [{"google_search": {}}]
+    
     try:
-        from google import genai
-        from google.genai import types
+        resp = requests.post(url, json=payload, timeout=120)
+        data = resp.json()
         
-        client = genai.Client(api_key=api_key)
+        if "error" in data:
+            return f"ERROR: {data['error'].get('message', str(data['error']))}"
         
-        if use_search:
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    tools=[types.Tool(google_search=types.GoogleSearch())]
-                ),
-            )
-        else:
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt,
-            )
+        candidates = data.get("candidates", [])
+        if not candidates:
+            return "ERROR: Tidak ada respons dari Gemini."
         
-        return response.text
+        parts = candidates[0].get("content", {}).get("parts", [])
+        text = "".join(p.get("text", "") for p in parts)
+        return text
+    except requests.exceptions.Timeout:
+        return "ERROR: Request timeout. Coba lagi."
     except Exception as e:
         return f"ERROR: {str(e)}"
 
