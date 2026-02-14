@@ -298,11 +298,10 @@ def call_gemini(prompt, use_search=False, api_key=""):
         model = genai.GenerativeModel('gemini-2.0-flash')
         
         if use_search:
-            # Use the correct syntax for google-generativeai library
-            # 'google_search_retrieval' is the tool name for the older SDK
+            # Use google_search tool (current supported syntax)
             response = model.generate_content(
                 contents=prompt,
-                tools='google_search_retrieval',
+                tools={"google_search": {}},
             )
         else:
             response = model.generate_content(contents=prompt)
