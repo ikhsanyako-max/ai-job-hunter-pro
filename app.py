@@ -292,19 +292,24 @@ def get_api_key():
 def call_gemini(prompt, use_search=False, api_key=""):
     """Call Gemini API with optional Google Search grounding."""
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
+        from google import genai
+        from google.genai import types
         
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        client = genai.Client(api_key=api_key)
         
         if use_search:
-            # Use google_search tool (current supported syntax)
-            response = model.generate_content(
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
                 contents=prompt,
-                tools={"google_search": {}},
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())]
+                ),
             )
         else:
-            response = model.generate_content(contents=prompt)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt,
+            )
         
         return response.text
     except Exception as e:
