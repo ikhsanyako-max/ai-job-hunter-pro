@@ -293,7 +293,7 @@ def call_gemini(prompt, use_search=False, api_key=""):
     """Call Gemini API via REST — no SDK dependency issues."""
     import requests
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key={api_key}"
     
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
